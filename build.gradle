@@ -1,0 +1,32 @@
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.4.0'
+    }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 28
+        applicationId "eichlerjiri.myvocab"
+        versionCode 1
+        versionName "1.0"
+        resValue "string", "myvocab_url", project.findProperty("MYVOCAB_URL")
+    }
+}
+
+repositories {
+    google()
+    jcenter()
+}
+
+dependencies {
+}
