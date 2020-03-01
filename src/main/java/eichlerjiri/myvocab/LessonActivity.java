@@ -126,6 +126,9 @@ public class LessonActivity extends Activity {
         seekIndex = seekIndexN;
         totalCount = vocabs.size();
 
+        confirmed = false;
+        playAudio = false;
+
         random = new Random();
         float sp = getResources().getDisplayMetrics().scaledDensity;
 
