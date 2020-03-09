@@ -74,6 +74,18 @@ public class VocabLoader implements Runnable {
                         }
                         audio = audioParts.get(1);
                     } else if (parts.size() == 2 || parts.size() == 3) {
+                        ArrayList<String> translationParts = splitLine(parts.get(1), ':');
+                        if (translationParts.size() > 2) {
+                            errors.add("Invalid file format");
+                            break;
+                        }
+
+                        String translation = translationParts.get(0);
+                        String translationWritten = null;
+                        if (translationParts.size() == 2) {
+                            translationWritten = translationParts.get(1);
+                        }
+
                         int audioFrom = -1;
                         int audioTo = -1;
                         if (parts.size() == 3) {
@@ -90,7 +102,7 @@ public class VocabLoader implements Runnable {
                                 break;
                             }
                         }
-                        vocabs.add(new VocabItem(parts.get(0), parts.get(1), audioFrom, audioTo));
+                        vocabs.add(new VocabItem(parts.get(0), translation, translationWritten, audioFrom, audioTo));
                     } else {
                         errors.add("Invalid file format");
                         break;

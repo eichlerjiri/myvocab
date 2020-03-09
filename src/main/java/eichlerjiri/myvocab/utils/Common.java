@@ -57,15 +57,17 @@ public class Common {
             throw e;
         } catch (IOException e) {
             Log.e("Common", "Cannot download file: " + url, e);
-            addError(errors, getHttpErrorMessage(e, conn));
+            if (conn != null) {
+                addError(errors, getHttpErrorMessage(e, conn));
 
-            InputStream es = conn.getErrorStream();
-            if (es != null) {
-                readAll(es, null);
-                closeStream(es);
+                InputStream es = conn.getErrorStream();
+                if (es != null) {
+                    readAll(es, null);
+                    closeStream(es);
+                }
             }
+            return null;
         }
-        return null;
     }
 
     public static String getHttpErrorMessage(IOException e, HttpURLConnection conn) {

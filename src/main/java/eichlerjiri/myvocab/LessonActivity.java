@@ -7,10 +7,15 @@ import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -35,17 +40,26 @@ public class LessonActivity extends Activity {
     public String audioFile;
     public ArrayList<Integer> seekIndex;
 
+    public boolean writingMode;
     public int totalCount;
     public int currentIndex;
     public boolean confirmed;
+    public boolean confirmedGood;
     public boolean playAudio;
     public ArrayList<Integer> removeLog = new ArrayList<>();
 
     public Random random;
-    public RelativeLayout l;
+    public RelativeLayout layout;
+    public LinearLayout layoutTop;
+    public LinearLayout layoutBottom;
+    public RelativeLayout layoutButtons;
     public TextView progress;
     public TextView original;
     public TextView translation;
+    public TextView translationWritten;
+    public Button noButton;
+    public Button goodButton;
+    public EditText writeField;
     public Button replay;
 
     public Bundle savedState;
@@ -60,6 +74,7 @@ public class LessonActivity extends Activity {
         if (b != null) {
             title = b.getString("title");
             filename = b.getString("filename");
+            writingMode = b.getBoolean("writingMode");
         }
 
         if (title == null || filename == null) {
@@ -68,6 +83,7 @@ public class LessonActivity extends Activity {
         }
 
         setTitle(title);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
         ActionBar actionBar = getActionBar();
         if (actionBar == null) {
@@ -112,11 +128,14 @@ public class LessonActivity extends Activity {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (vocabs != null) {
+            outState.putBoolean("writingMode", writingMode);
             outState.putInt("totalCount", totalCount);
             outState.putInt("currentIndex", currentIndex);
             outState.putBoolean("confirmed", confirmed);
+            outState.putBoolean("confirmedGood", confirmedGood);
             outState.putBoolean("playAudio", playAudio);
             outState.putIntegerArrayList("removeLog", removeLog);
+            outState.putString("writtenText", writeField.getText().toString());
         }
     }
 
@@ -142,29 +161,48 @@ public class LessonActivity extends Activity {
         translation.setTextSize(translation.getTextSize() * 1.2f);
         translation.setTypeface(translation.getTypeface(), Typeface.BOLD);
 
-        LinearLayout ll = new LinearLayout(this);
-        ll.setOrientation(LinearLayout.VERTICAL);
-        int padding = round(5 * sp);
-        ll.setPadding(padding, padding, padding, padding);
-        ll.addView(progress);
-        ll.addView(original);
-        ll.addView(translation);
+        translationWritten = new TextView(this);
+        translationWritten.setTextSize(translationWritten.getTextSize() * 1.4f);
 
-        Button noButton = new Button(this);
+        layoutTop = new LinearLayout(this);
+        layoutTop.setOrientation(LinearLayout.VERTICAL);
+        int padding = round(5 * sp);
+        layoutTop.setPadding(padding, padding, padding, padding);
+        layoutTop.addView(progress);
+        layoutTop.addView(original);
+        layoutTop.addView(translation);
+        layoutTop.addView(translationWritten);
+
+        layoutButtons = new RelativeLayout(this);
+        layoutButtons.setVerticalGravity(Gravity.BOTTOM);
+
+        layoutBottom = new LinearLayout(this);
+        layoutBottom.setOrientation(LinearLayout.VERTICAL);
+        RelativeLayout.LayoutParams paramsLayoutBottom = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
+        paramsLayoutBottom.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        layoutBottom.setLayoutParams(paramsLayoutBottom);
+        layoutBottom.addView(layoutButtons);
+
+        layout = new RelativeLayout(this);
+        layout.addView(layoutTop);
+        layout.addView(layoutBottom);
+
+        noButton = new Button(this);
         noButton.setBackgroundColor(Color.RED);
         noButton.setTextSize(noButton.getTextSize() * 1.5f);
         RelativeLayout.LayoutParams paramsNoButton = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-        paramsNoButton.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         paramsNoButton.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         noButton.setLayoutParams(paramsNoButton);
 
-        Button goodButton = new Button(this);
+        goodButton = new Button(this);
         goodButton.setBackgroundColor(Color.GREEN);
         goodButton.setTextSize(goodButton.getTextSize() * 1.5f);
         RelativeLayout.LayoutParams paramsGoodButton = new RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-        paramsGoodButton.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         paramsGoodButton.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         goodButton.setLayoutParams(paramsGoodButton);
+
+        writeField = new EditText(this);
+        writeField.setTextSize(TypedValue.COMPLEX_UNIT_PX, translationWritten.getTextSize());
 
         replay = new Button(this);
         replay.setText("replay");
@@ -172,11 +210,6 @@ public class LessonActivity extends Activity {
         paramsReplayButton.addRule(RelativeLayout.ALIGN_PARENT_TOP);
         paramsReplayButton.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         replay.setLayoutParams(paramsReplayButton);
-
-        l = new RelativeLayout(this);
-        l.addView(ll);
-        l.addView(noButton);
-        l.addView(goodButton);
 
         goodButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -202,31 +235,52 @@ public class LessonActivity extends Activity {
         });
 
         nextVocab();
-        setContentView(l);
+        setContentView(layout);
     }
 
     public void resultButtonClicked(boolean good) {
         try {
+            VocabItem item = vocabs.get(currentIndex);
+
             if (confirmed) {
-                if (good) {
+                if (good && (!writingMode || item.translationWritten == null || confirmedGood)) {
                     vocabs.remove(currentIndex);
                     removeLog.add(Integer.valueOf(currentIndex));
                 }
 
                 translation.setText("");
+                translationWritten.setText("");
                 confirmed = false;
+                confirmedGood = false;
                 playAudio = false;
-                l.removeView(replay);
+                layout.removeView(replay);
+                layoutButtons.removeView(noButton);
+                layoutButtons.removeView(goodButton);
+                layoutBottom.removeView(writeField);
+                goodButton.setBackgroundColor(Color.GREEN);
+                writeField.setText("");
 
                 nextVocab();
             } else {
-                VocabItem item = vocabs.get(currentIndex);
-
-                translation.setText(item.translation);
                 confirmed = true;
+                translation.setText(item.translation);
+                if (item.translationWritten != null) {
+                    translationWritten.setText(item.translationWritten);
+
+                    if (writingMode) {
+                        if (writeField.getText().toString().equals(item.translationWritten)) {
+                            confirmedGood = true;
+                        } else {
+                            goodButton.setBackgroundColor(Color.RED);
+                        }
+
+                        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(writeField.getWindowToken(), 0);
+                    }
+                }
                 if (playAudio()) {
                     playAudio = true;
-                    l.addView(replay);
+                    layout.addView(replay);
                 }
             }
         } catch (InterruptedIOException e) {
@@ -287,20 +341,32 @@ public class LessonActivity extends Activity {
         } else {
             if (savedState != null && savedState.containsKey("totalCount")
                     && savedState.getInt("totalCount") == totalCount) {
+                writingMode = savedState.getBoolean("writingMode");
                 currentIndex = savedState.getInt("currentIndex");
                 confirmed = savedState.getBoolean("confirmed");
+                confirmedGood = savedState.getBoolean("confirmedGood");
                 playAudio = savedState.getBoolean("playAudio");
                 removeLog = savedState.getIntegerArrayList("removeLog");
+                writeField.setText(savedState.getString("writtenText"));
 
                 for (int i = 0; i < removeLog.size(); i++) {
                     vocabs.remove(removeLog.get(i).intValue());
                 }
 
                 if (confirmed) {
-                    translation.setText(vocabs.get(currentIndex).translation);
+                    VocabItem item = vocabs.get(currentIndex);
+
+                    translation.setText(item.translation);
+                    if (writingMode && item.translationWritten != null) {
+                        translationWritten.setText(item.translationWritten);
+
+                        if (!confirmedGood) {
+                            goodButton.setBackgroundColor(Color.RED);
+                        }
+                    }
                 }
                 if (playAudio) {
-                    l.addView(replay);
+                    layout.addView(replay);
                 }
 
                 savedState = null;
@@ -308,8 +374,22 @@ public class LessonActivity extends Activity {
                 currentIndex = random.nextInt(vocabs.size());
             }
 
+            VocabItem item = vocabs.get(currentIndex);
+
+            if (!writingMode || item.translationWritten == null) {
+                layoutButtons.addView(noButton);
+            } else {
+                layoutBottom.addView(writeField);
+
+                writeField.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.showSoftInput(writeField, 0);
+            }
+            layoutButtons.addView(goodButton);
+
             progress.setText((totalCount - vocabs.size() + 1) + " / " + totalCount);
-            original.setText(vocabs.get(currentIndex).original);
+            original.setText(item.original);
+            layout.invalidate(); // layout bug fix
         }
     }
 }

@@ -1,6 +1,8 @@
 package eichlerjiri.myvocab;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +23,7 @@ public class MyVocab extends Activity {
     public ListView indexListView;
     public ArrayList<IndexItem> items;
 
+    public IndexItem selectedItem;
     public Bundle savedState;
 
     public MyVocab() {
@@ -81,10 +84,8 @@ public class MyVocab extends Activity {
         indexListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(MyVocab.this, LessonActivity.class);
-                intent.putExtra("title", items.get(position).title);
-                intent.putExtra("filename", items.get(position).filename);
-                startActivity(intent);
+                selectedItem = items.get(position);
+                variantDialog();
             }
         });
         indexListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, viewItems));
@@ -95,5 +96,31 @@ public class MyVocab extends Activity {
         }
 
         setContentView(indexListView);
+    }
+
+    public void variantDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setMessage("Evaluation mode")
+                .setNegativeButton("Speaking only", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        startLesson(false);
+                    }
+                })
+                .setPositiveButton("Writing", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        startLesson(true);
+                    }
+                });
+        builder.create().show();
+    }
+
+    public void startLesson(boolean writingMode) {
+        Intent intent = new Intent(this, LessonActivity.class);
+        intent.putExtra("title", selectedItem.title);
+        intent.putExtra("filename", selectedItem.filename);
+        intent.putExtra("writingMode", writingMode);
+        startActivity(intent);
     }
 }
