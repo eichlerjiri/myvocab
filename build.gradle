@@ -27,6 +27,3 @@ repositories {
     google()
     jcenter()
 }
-
-dependencies {
-}
