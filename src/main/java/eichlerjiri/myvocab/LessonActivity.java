@@ -275,7 +275,9 @@ public class LessonActivity extends Activity {
                         }
 
                         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(writeField.getWindowToken(), 0);
+                        if (imm != null) {
+                            imm.hideSoftInputFromWindow(writeField.getWindowToken(), 0);
+                        }
                     }
                 }
                 if (playAudio()) {
@@ -383,13 +385,14 @@ public class LessonActivity extends Activity {
 
                 writeField.requestFocus();
                 InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.showSoftInput(writeField, 0);
+                if (imm != null) {
+                    imm.showSoftInput(writeField, 0);
+                }
             }
             layoutButtons.addView(goodButton);
 
             progress.setText((totalCount - vocabs.size() + 1) + " / " + totalCount);
             original.setText(item.original);
-            layout.invalidate(); // layout bug fix
         }
     }
 }

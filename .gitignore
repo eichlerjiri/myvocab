@@ -2,6 +2,4 @@
 /.idea
 /local.properties
 /build
-/*/build
-/*.iml
-/*/*.iml
+/myvocab.iml
