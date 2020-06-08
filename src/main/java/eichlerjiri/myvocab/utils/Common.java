@@ -22,8 +22,7 @@ import java.util.ArrayList;
 
 public class Common {
 
-    public static byte[] cachedDownload(String baseUrl, File cacheDir, String filename, boolean forceReload,
-            ArrayList<String> errors) throws InterruptedIOException {
+    public static byte[] cachedDownload(String baseUrl, File cacheDir, String filename, boolean forceReload, ArrayList<String> errors) throws InterruptedIOException {
         byte[] data = null;
 
         File cachedFile = new File(cacheDir, filename);

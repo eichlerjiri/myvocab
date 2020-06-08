@@ -341,8 +341,7 @@ public class LessonActivity extends Activity {
         if (vocabs.isEmpty()) {
             finish();
         } else {
-            if (savedState != null && savedState.containsKey("totalCount")
-                    && savedState.getInt("totalCount") == totalCount) {
+            if (savedState != null && savedState.containsKey("totalCount") && savedState.getInt("totalCount") == totalCount) {
                 writingMode = savedState.getBoolean("writingMode");
                 currentIndex = savedState.getInt("currentIndex");
                 confirmed = savedState.getBoolean("confirmed");
