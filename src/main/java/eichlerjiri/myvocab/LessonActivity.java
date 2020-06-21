@@ -264,8 +264,10 @@ public class LessonActivity extends Activity {
             } else {
                 confirmed = true;
                 translation.setText(item.translation);
+                translation.forceLayout(); // random layout bug fix
                 if (item.translationWritten != null) {
                     translationWritten.setText(item.translationWritten);
+                    translationWritten.forceLayout(); // random layout bug fix
 
                     if (writingMode) {
                         if (writeField.getText().toString().equals(item.translationWritten)) {
@@ -391,7 +393,9 @@ public class LessonActivity extends Activity {
             layoutButtons.addView(goodButton);
 
             progress.setText((totalCount - vocabs.size() + 1) + " / " + totalCount);
+            progress.forceLayout(); // random layout bug fix
             original.setText(item.original);
+            original.forceLayout(); // random layout bug fix
         }
     }
 }
