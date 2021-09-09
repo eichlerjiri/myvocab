@@ -12,11 +12,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
-import java.util.ArrayList;
-
 import eichlerjiri.myvocab.data.IndexItem;
 import eichlerjiri.myvocab.data.IndexLoader;
+import java.util.ArrayList;
 
 public class MyVocab extends Activity {
 

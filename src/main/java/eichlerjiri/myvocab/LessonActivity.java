@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import static android.view.ViewGroup.LayoutParams.*;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -20,18 +21,14 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.io.InterruptedIOException;
-import java.util.ArrayList;
-import java.util.Random;
-
 import eichlerjiri.myvocab.data.VocabItem;
 import eichlerjiri.myvocab.data.VocabLoader;
-
-import static android.view.ViewGroup.LayoutParams.*;
 import static eichlerjiri.myvocab.utils.Common.*;
+import java.io.File;
+import java.io.InterruptedIOException;
 import static java.lang.Math.*;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class LessonActivity extends Activity {
 

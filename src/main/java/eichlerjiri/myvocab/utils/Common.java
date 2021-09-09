@@ -1,7 +1,6 @@
 package eichlerjiri.myvocab.utils;
 
 import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,9 +14,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class Common {
@@ -181,11 +180,7 @@ public class Common {
     }
 
     public static BufferedReader readByLine(byte[] data) {
-        try {
-            return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
+        return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(data), StandardCharsets.UTF_8));
     }
 
     public static String readLine(BufferedReader r) throws InterruptedIOException {

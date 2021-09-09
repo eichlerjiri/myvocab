@@ -4,16 +4,13 @@ import android.app.AlertDialog;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
-
+import eichlerjiri.myvocab.LessonActivity;
+import eichlerjiri.myvocab.R;
+import static eichlerjiri.myvocab.utils.Common.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
-
-import eichlerjiri.myvocab.LessonActivity;
-import eichlerjiri.myvocab.R;
-
-import static eichlerjiri.myvocab.utils.Common.*;
 
 public class VocabLoader implements Runnable {
 
@@ -180,7 +177,7 @@ public class VocabLoader implements Runnable {
                         state = 2;
                     }
                 }
-            } else if (state == 2) {
+            } else {
                 int bitrate = (b >> 4) & 0xF;
                 int samplingRate = (b >> 2) & 0x3;
                 int padding = (b >> 1) & 0x1;

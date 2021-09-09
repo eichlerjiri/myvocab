@@ -4,16 +4,13 @@ import android.app.AlertDialog;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
-
+import eichlerjiri.myvocab.MyVocab;
+import eichlerjiri.myvocab.R;
+import static eichlerjiri.myvocab.utils.Common.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
-
-import eichlerjiri.myvocab.MyVocab;
-import eichlerjiri.myvocab.R;
-
-import static eichlerjiri.myvocab.utils.Common.*;
 
 public class IndexLoader implements Runnable {
 
