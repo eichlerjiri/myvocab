@@ -64,7 +64,6 @@ public class IndexLoader implements Runnable {
 
                     items.add(new IndexItem(parts.get(0), parts.get(1)));
                 }
-                closeStream(r);
             }
 
             new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -81,6 +80,17 @@ public class IndexLoader implements Runnable {
             });
         } catch (InterruptedIOException e) {
             // end
+        }
+    }
+
+    public static class IndexItem {
+
+        public final String title;
+        public final String filename;
+
+        public IndexItem(String title, String filename) {
+            this.title = title;
+            this.filename = filename;
         }
     }
 }

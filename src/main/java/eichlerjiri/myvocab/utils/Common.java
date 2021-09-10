@@ -4,10 +4,8 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,26 +43,32 @@ public class Common {
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) new URL(url).openConnection();
-            InputStream is = conn.getInputStream();
-            try {
-                return readAll(is, errors);
-            } finally {
-                closeStream(is);
+            try (InputStream is = conn.getInputStream()) {
+                return readAll(is);
             }
         } catch (InterruptedIOException e) {
             throw e;
         } catch (IOException e) {
             Log.e("Common", "Cannot download file: " + url, e);
             if (conn != null) {
-                addError(errors, getHttpErrorMessage(e, conn));
-
-                InputStream es = conn.getErrorStream();
-                if (es != null) {
-                    readAll(es, null);
-                    closeStream(es);
-                }
+                errors.add(getHttpErrorMessage(e, conn));
+                readErrorStream(conn);
+            } else {
+                errors.add(e.getMessage());
             }
             return null;
+        }
+    }
+
+    public static void readErrorStream(HttpURLConnection conn) throws InterruptedIOException {
+        try (InputStream es = conn.getErrorStream()) {
+            if (es != null) {
+                readAll(es);
+            }
+        } catch (InterruptedIOException e) {
+            throw e;
+        } catch (IOException e) {
+            Log.e("Common", "Cannot read error stream", e);
         }
     }
 
@@ -82,30 +86,22 @@ public class Common {
     }
 
     public static byte[] readFile(File file) throws InterruptedIOException {
-        try {
-            FileInputStream fis = new FileInputStream(file);
-            try {
-                return readAll(fis, null);
-            } finally {
-                closeStream(fis);
-            }
-        } catch (FileNotFoundException e) {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return readAll(fis);
+        } catch (InterruptedIOException e) {
+            throw e;
+        } catch (IOException e) {
             Log.e("Common", "Cannot read file: " + file, e);
             return null;
         }
     }
 
     public static byte[] readFilePartial(File file, int startPos, int length) throws InterruptedIOException {
-        try {
-            RandomAccessFile is = new RandomAccessFile(file, "r");
-            try {
-                is.seek(startPos);
-                byte[] data = new byte[length];
-                is.readFully(data);
-                return data;
-            } finally {
-                closeStream(is);
-            }
+        try (RandomAccessFile is = new RandomAccessFile(file, "r")) {
+            is.seek(startPos);
+            byte[] data = new byte[length];
+            is.readFully(data);
+            return data;
         } catch (InterruptedIOException e) {
             throw e;
         } catch (IOException e) {
@@ -115,13 +111,8 @@ public class Common {
     }
 
     public static boolean writeFile(File file, byte[] data) throws InterruptedIOException {
-        try {
-            FileOutputStream fos = new FileOutputStream(file);
-            try {
-                fos.write(data);
-            } finally {
-                closeStream(fos);
-            }
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(data);
             return true;
         } catch (InterruptedIOException e) {
             throw e;
@@ -131,32 +122,14 @@ public class Common {
         }
     }
 
-    public static byte[] readAll(InputStream is, ArrayList<String> errors) throws InterruptedIOException {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream(is.available());
-            byte[] buffer = new byte[4096];
-            int num;
-            while ((num = is.read(buffer)) != -1) {
-                baos.write(buffer, 0, num);
-            }
-            return baos.toByteArray();
-        } catch (InterruptedIOException e) {
-            throw e;
-        } catch (IOException e) {
-            Log.e("Common", "Cannot read stream", e);
-            addError(errors, e.getMessage());
-            return null;
+    public static byte[] readAll(InputStream is) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(is.available());
+        byte[] buffer = new byte[4096];
+        int num;
+        while ((num = is.read(buffer)) != -1) {
+            baos.write(buffer, 0, num);
         }
-    }
-
-    public static void closeStream(Closeable is) throws InterruptedIOException {
-        try {
-            is.close();
-        } catch (InterruptedIOException e) {
-            throw e;
-        } catch (IOException e) {
-            Log.e("Common", "Cannot close stream", e);
-        }
+        return baos.toByteArray();
     }
 
     public static File createTempFile(String prefix, String suffix) {
@@ -170,12 +143,6 @@ public class Common {
     public static void unlinkFile(File file) {
         if (!file.delete()) {
             Log.e("Common", "Cannot delete file: " + file.getPath());
-        }
-    }
-
-    public static void addError(ArrayList<String> errors, String error) {
-        if (errors != null) {
-            errors.add(error);
         }
     }
 
