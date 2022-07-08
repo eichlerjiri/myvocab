@@ -8,7 +8,9 @@
         android:icon="@mipmap/ic_launcher"
         android:label="My Vocab"
         android:usesCleartextTraffic="true">
-        <activity android:name="eichlerjiri.myvocab.MyVocab">
+        <activity
+            android:name="eichlerjiri.myvocab.MyVocab"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
