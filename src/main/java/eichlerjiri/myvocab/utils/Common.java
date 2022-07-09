@@ -14,10 +14,19 @@ import java.io.InterruptedIOException;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class Common {
+
+    public static String exceptionToString(Throwable t) {
+        String ret = t.getMessage();
+        if (ret == null) {
+            ret = t.getClass().getCanonicalName();
+        }
+        return ret;
+    }
 
     public static byte[] cachedDownload(String baseUrl, File cacheDir, String filename, boolean forceReload, ArrayList<String> errors) throws InterruptedIOException {
         byte[] data = null;
@@ -40,49 +49,52 @@ public class Common {
     }
 
     public static byte[] download(String url, ArrayList<String> errors) throws InterruptedIOException {
-        HttpURLConnection conn = null;
         try {
-            conn = (HttpURLConnection) new URL(url).openConnection();
-            try (InputStream is = conn.getInputStream()) {
-                return readAll(is);
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setInstanceFollowRedirects(false);
+
+            byte[] response = readHTTPResponse(conn);
+            int code = conn.getResponseCode();
+            if (code != 200) {
+                errors.add(code + ": " + conn.getResponseMessage());
+                Log.e("Common", "Cannot download file " + url + ": " + code + ": " + conn.getResponseMessage());
+                return null;
             }
+            return response;
         } catch (InterruptedIOException e) {
             throw e;
+        } catch (UnknownHostException e) {
+            errors.add("Unknown hostname");
+            Log.e("Common", "Cannot download file " + url + ": unknown hostname", e);
+            return null;
         } catch (IOException e) {
-            Log.e("Common", "Cannot download file: " + url, e);
-            if (conn != null) {
-                errors.add(getHttpErrorMessage(e, conn));
-                readErrorStream(conn);
-            } else {
-                errors.add(e.getMessage());
-            }
+            errors.add(exceptionToString(e));
+            Log.e("Common", "Cannot download file " + url, e);
             return null;
         }
     }
 
-    public static void readErrorStream(HttpURLConnection conn) throws InterruptedIOException {
-        try (InputStream es = conn.getErrorStream()) {
-            if (es != null) {
-                readAll(es);
-            }
-        } catch (InterruptedIOException e) {
-            throw e;
-        } catch (IOException e) {
-            Log.e("Common", "Cannot read error stream", e);
+    public static byte[] readAllAndClose(InputStream is) throws IOException {
+        try {
+            return readAll(is);
+        } finally {
+            is.close();
         }
     }
 
-    public static String getHttpErrorMessage(IOException e, HttpURLConnection conn) {
+    public static byte[] readHTTPResponse(HttpURLConnection conn) throws IOException {
         try {
-            int code = conn.getResponseCode();
-            String message = conn.getResponseMessage();
-            if (code != -1 && message != null) {
-                return code + ": " + message;
+            return readAllAndClose(conn.getInputStream());
+        } catch (IOException e) {
+            InputStream errorStream = conn.getErrorStream();
+            if (errorStream != null) {
+                return readAllAndClose(errorStream);
+            } else if (conn.getResponseCode() == -1) {
+                throw e;
+            } else {
+                return new byte[]{};
             }
-        } catch (IOException e2) {
-            // no HTTP error message available
         }
-        return e.getMessage();
     }
 
     public static byte[] readFile(File file) throws InterruptedIOException {

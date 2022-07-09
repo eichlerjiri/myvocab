@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import eichlerjiri.myvocab.data.IndexLoader;
 import eichlerjiri.myvocab.data.IndexLoader.IndexItem;
+import static eichlerjiri.myvocab.utils.Common.*;
 import java.util.ArrayList;
 
 public class MyVocab extends Activity {
@@ -28,11 +29,11 @@ public class MyVocab extends Activity {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
-                Log.e("MyVocab", e.getMessage(), e);
+                Log.e("MyVocab", exceptionToString(e), e);
 
                 Intent intent = new Intent(MyVocab.this, ErrorActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("msg", e.getMessage());
+                intent.putExtra("msg", exceptionToString(e));
                 startActivity(intent);
 
                 System.exit(1);
