@@ -146,10 +146,11 @@ public class LessonActivity extends Activity {
         playAudio = false;
 
         random = new Random();
-        float sp = getResources().getDisplayMetrics().scaledDensity;
+
+        int padding = round(8 * getResources().getDisplayMetrics().scaledDensity);
 
         progress = new TextView(this);
-        progress.setPadding(0, 0, 0, round(10 * sp));
+        progress.setPadding(0, 0, 0, padding);
 
         original = new TextView(this);
         original.setTextSize(original.getTextSize() * 1.2f);
@@ -163,7 +164,6 @@ public class LessonActivity extends Activity {
 
         layoutTop = new LinearLayout(this);
         layoutTop.setOrientation(LinearLayout.VERTICAL);
-        int padding = round(5 * sp);
         layoutTop.setPadding(padding, padding, padding, padding);
         layoutTop.addView(progress);
         layoutTop.addView(original);
@@ -199,6 +199,7 @@ public class LessonActivity extends Activity {
         goodButton.setLayoutParams(paramsGoodButton);
 
         writeField = new EditText(this);
+        writeField.setPadding(padding, writeField.getPaddingTop(), padding, writeField.getPaddingBottom());
         writeField.setTextSize(TypedValue.COMPLEX_UNIT_PX, translationWritten.getTextSize());
 
         replay = new Button(this);
