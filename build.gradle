@@ -5,11 +5,13 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.3'
+        classpath 'com.android.tools.build:gradle:7.0.4'
     }
 }
 
 apply plugin: 'com.android.application'
+
+project.gradle.startParameter.excludedTaskNames.add('lint')
 
 android {
     compileOptions {
@@ -24,7 +26,23 @@ android {
         resValue 'string', 'myvocab_url', project.findProperty('MYVOCAB_URL')
     }
     lintOptions {
-        tasks.lint.enabled = false
+        checkReleaseBuilds = false
+    }
+    signingConfigs {
+        release {
+            storeFile file(KEYSTORE_FILE)
+            storePassword KEYSTORE_PASSWORD
+            keyAlias KEY_ALIAS
+            keyPassword KEY_PASSWORD
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+        }
+        release {
+            signingConfig signingConfigs.release
+        }
     }
 }
 

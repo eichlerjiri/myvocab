@@ -1,5 +1,6 @@
 /.gradle
 /.idea
+/gradle.properties
 /local.properties
 /build
 /myvocab.iml
